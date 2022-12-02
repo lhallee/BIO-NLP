@@ -40,7 +40,7 @@ def main(model_path, tokenizer_path, data_path, epochs, batch_size, lr=1e-3, sav
     # initialize optimizer
     optim = torch.optim.AdamW(model.parameters(), lr=lr)
 
-    for epoch in range(epochs - 1):
+    for epoch in range(epochs):
         # setup loop with TQDM and dataloader
         loop = tqdm(loader, leave=True)
         for batch in loop:
