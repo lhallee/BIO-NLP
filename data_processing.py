@@ -50,7 +50,7 @@ def pairs_to_dataset(path, length, number):
                 df['A'].iloc[i] = 'A_' + idA + '-' + str(i)
                 df['B'].iloc[i] = 'B_' + idB + '-' + str(i)
         except:
-            drops_shuf.append[i]
+            drops_shuf.append(i)
 
     df.drop(df.index[drops_shuf])
 
