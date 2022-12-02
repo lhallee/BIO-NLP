@@ -157,7 +157,3 @@ def make_tokens(tokenizer_path, data_path):
     inputs = prot_tokenizer(SeqsA, SeqsB, return_tensors='pt', padding='max_length', max_length=2003)
     inputs['labels'] = torch.LongTensor([labels]).T
     torch.save(inputs, 'nlp_train_data_100000.pt')
-
-
-make_tokens('Rostlab/prot_bert_bfd', '500labels_combined100000.csv')
-
