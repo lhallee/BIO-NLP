@@ -5,7 +5,7 @@ from transformers import BertTokenizer, BertForNextSentencePrediction
 from tqdm import tqdm
 
 #Load Data
-def main(model_path, data_path, epochs, lr=1e-3, save=True):
+def main(model_path, data_path, epochs, batch_size, lr=1e-3, save=True):
     df = pd.read_csv(data_path).astype('string')
     df['Label'] = df['Label'].astype('int')
     SeqsA=list(df['SeqA'])
@@ -30,7 +30,7 @@ def main(model_path, data_path, epochs, lr=1e-3, save=True):
 
     dataset = BertDataset(inputs)
 
-    loader = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=True)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     # and move our model over to the selected device
