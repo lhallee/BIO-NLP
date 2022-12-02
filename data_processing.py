@@ -9,20 +9,20 @@ def pairs_to_dataset(path, length, number, header):
     df = pd.read_csv(path, low_memory=False).astype('string') # Load data
     if number < len(df['A']):
         df = df[:number]
-    for i in range(len(df['A'])):
-        df['Label'].iloc[i] = '1'
-    df['Label'] = df['Label'].astype('int')
     # Process by sequence size
     drops = []
-    for i in tqdm(range(len(df['A'])), desc='Trim Length'):
-        #df['Label'].iloc[i] = str(1)
+    for i in tqdm(range(len(df['SeqA'])), desc='Trim Length'):
+        df['Label'].iloc[i] = '1'
+        l = 0
         try:
-            if (len(df['SeqA'].iloc[i]) > length) or (len(df['SeqB'].iloc[i]) > length):
-                drops.append(i)
+            l = (len(df['SeqA'].iloc[i]) + len(df['SeqB'].iloc[i]))
         except:
             drops.append(i)
+        if l > 2 * length or l < 100:
+            drops.append(i)
 
-    df.drop(df.index[drops])
+    df.drop(df.index[drops], inplace=True)
+    df['Label'] = df['Label'].astype('int')
 
     len_df = len(df['A'])  # Keep original length
     df = pd.concat([df] * 2, ignore_index=True)  # Double size
@@ -52,9 +52,7 @@ def pairs_to_dataset(path, length, number, header):
         except:
             drops_shuf.append(i)
 
-    df.drop(df.index[drops_shuf])
-
-    drops_comb = []
+    df.drop(df.index[drops_shuf], inplace=True)
 
     for i in tqdm(range(len(df['A'])), desc='Combine'):  # remove special aminos and add spaces
         SeqA = str(df['SeqA'].iloc[i])
@@ -66,10 +64,7 @@ def pairs_to_dataset(path, length, number, header):
         df['SeqA'].iloc[i] = SeqA
         df['SeqB'].iloc[i] = SeqB
         df['Combined'].iloc[i] = '[CLS] ' + SeqA + ' [SEP] ' + SeqB + ' [SEP]'
-        if len(df['Combined'].iloc[i]) < 30:
-            drops_comb.append(i)
 
-    df.drop(df.index[drops_comb])
 
     df = df.sample(frac=1).reset_index(drop=True) #shuffle dataframe in place
     df.to_csv(str(length) + 'labels_combined' + str(number) + '.csv', columns=header)
