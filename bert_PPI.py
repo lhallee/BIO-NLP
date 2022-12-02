@@ -5,7 +5,7 @@ from transformers import BertTokenizer, BertForNextSentencePrediction
 from tqdm import tqdm
 
 #Load Data
-def main(model_path, tokenizer_path, data_path, epochs, batch_size, lr=1e-3, save=True):
+def main(model_path, tokenizer_path, data_path, save_path, epochs, batch_size, lr=1e-3, save=True):
     df = pd.read_csv(data_path).astype('string')
     df['Label'] = df['Label'].astype('int')
     SeqsA=list(df['SeqA'])
@@ -43,6 +43,7 @@ def main(model_path, tokenizer_path, data_path, epochs, batch_size, lr=1e-3, sav
     for epoch in range(epochs):
         # setup loop with TQDM and dataloader
         loop = tqdm(loader, leave=True)
+        total_loss = 0
         for batch in loop:
             # initialize calculated gradients (from prev step)
             optim.zero_grad()
@@ -59,6 +60,7 @@ def main(model_path, tokenizer_path, data_path, epochs, batch_size, lr=1e-3, sav
                             )
             # extract loss
             loss = outputs.loss
+            total_loss += loss.item()
             # calculate loss for every parameter that needs grad update
             loss.backward()
             # update parameters
@@ -66,10 +68,13 @@ def main(model_path, tokenizer_path, data_path, epochs, batch_size, lr=1e-3, sav
             # print relevant info to progress bar
             loop.set_description(f'Epoch {epoch}')
             loop.set_postfix(loss=loss.item())
+        total_loss = round(total_loss / len(loop), 3)
+        print(f'Average loss {total_loss}')
+
 
     if save:
         now = datetime.now()
-        model.save_pretrained(str(now) + 'local_prot_bert_NSP_model')
+        model.save_pretrained(save_path + str(now) + 'local_prot_bert_NSP_model')
         #prot_tokenizer.save_pretrained(str(now) + 'local_prot_bert_NSP_tokenizer')
         return str(now) + 'local_prot_bert_NSP_model'
     else:

@@ -5,7 +5,7 @@ import re
 import random
 from tqdm import tqdm
 
-def pairs_to_dataset(path, length, number):
+def pairs_to_dataset(path, length, number, header):
     df = pd.read_csv(path, low_memory=False).astype('string') # Load data
     if number < len(df['A']):
         df = df[:number]
@@ -72,6 +72,7 @@ def pairs_to_dataset(path, length, number):
     df.drop(df.index[drops_comb])
 
     df = df.sample(frac=1).reset_index(drop=True) #shuffle dataframe in place
-    df.to_csv(str(length) + 'labels_combined' + str(number) + '.csv')
+    df.to_csv(str(length) + 'labels_combined' + str(number) + '.csv', columns=header)
 
-pairs_to_dataset('PPI_seqs_trimmed.csv', 500, 20000000)
+header = ['Label', 'SeqA', 'SeqB']
+pairs_to_dataset('PPI_seqs_trimmed.csv', 500, 100000, header)
