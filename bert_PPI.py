@@ -5,14 +5,14 @@ from transformers import BertTokenizer, BertForNextSentencePrediction
 from tqdm import tqdm
 
 #Load Data
-def main(model_path, data_path, epochs, batch_size, lr=1e-3, save=True):
+def main(model_path, tokenizer_path, data_path, epochs, batch_size, lr=1e-3, save=True):
     df = pd.read_csv(data_path).astype('string')
     df['Label'] = df['Label'].astype('int')
     SeqsA=list(df['SeqA'])
     SeqsB=list(df['SeqB'])
     labels = list(df['Label'])
 
-    prot_tokenizer = BertTokenizer.from_pretrained(model_path)
+    prot_tokenizer = BertTokenizer.from_pretrained(tokenizer_path)
     model = BertForNextSentencePrediction.from_pretrained(model_path)
 
     inputs = prot_tokenizer(SeqsA, SeqsB, return_tensors='pt', max_length=1003, truncation=True, padding='max_length')
@@ -40,7 +40,7 @@ def main(model_path, data_path, epochs, batch_size, lr=1e-3, save=True):
     # initialize optimizer
     optim = torch.optim.AdamW(model.parameters(), lr=lr)
 
-    for epoch in range(epochs):
+    for epoch in range(epochs - 1):
         # setup loop with TQDM and dataloader
         loop = tqdm(loader, leave=True)
         for batch in loop:
@@ -70,6 +70,9 @@ def main(model_path, data_path, epochs, batch_size, lr=1e-3, save=True):
     if save:
         now = datetime.now()
         model.save_pretrained(str(now) + 'local_prot_bert_NSP_model')
-        prot_tokenizer.save_pretrained(str(now) + 'local_prot_bert_NSP_tokenizer')
+        #prot_tokenizer.save_pretrained(str(now) + 'local_prot_bert_NSP_tokenizer')
+        return str(now) + 'local_prot_bert_NSP_model'
+    else:
+        return 'Done'
 
 
