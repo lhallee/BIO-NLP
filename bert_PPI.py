@@ -186,8 +186,10 @@ def nsp_eval(model_path, tokenizer_path, data_path):
                             )
             pred = torch.argmax(outputs.logits)
             correct += (pred == labels).float().sum()
-
-    acc = 100 * correct / len(labels)
+            print(correct / len(pred))
+    print(len(labels))
+    print(len(df['SeqA']))
+    acc = 100 * correct.detach().cpu() / len(labels)
     print(acc)
     return acc
 
