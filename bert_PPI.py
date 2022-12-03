@@ -260,3 +260,68 @@ def bert_MLM_token_train(model_path, tokenizer_path, data_path, save_path, epoch
         return str(now) + 'local_prot_bert_MLM_model'
     else:
         return 'Done'
+
+def bert_MLM_train(model_path, data_path, save_path, epochs, batch_size, lr=1e-3, save=True):
+    model = BertForMaskedLM.from_pretrained(model_path, do_lower_case=False)
+    inputs = torch.load(data_path)
+    inputs['labels'] = inputs.input_ids.detach().clone()
+    # create random array of floats with equal dimensions to input_ids tensor
+    rand = torch.rand(inputs.input_ids.shape)
+    # create mask array
+    mask_arr = (rand < 0.15) * (inputs.input_ids != 2) * \
+               (inputs.input_ids != 3) * (inputs.input_ids != 0)
+    selection = []
+
+    for i in range(inputs.input_ids.shape[0]):
+        selection.append(
+            torch.flatten(mask_arr[i].nonzero()).tolist()
+        )
+    for i in range(inputs.input_ids.shape[0]):
+        inputs.input_ids[i, selection[i]] = 4
+
+    dataset = BertDataset(inputs)
+
+    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    # and move our model over to the selected device
+    model.to(device)
+    # activate training mode
+    model.train()
+    # initialize optimizer
+    optim = torch.optim.AdamW(model.parameters(), lr=lr)
+    for epoch in range(epochs):
+        # setup loop with TQDM and dataloader
+        loop = tqdm(loader, leave=True)
+        total_loss = 0
+        for batch in loop:
+            # initialize calculated gradients (from prev step)
+            optim.zero_grad()
+            # pull all tensor batches required for training
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            # process
+            outputs = model(input_ids,
+                            attention_mask=attention_mask,
+                            labels=labels
+                            )
+            # extract loss
+            loss = outputs.loss
+            total_loss += loss.item()
+            # calculate loss for every parameter that needs grad update
+            loss.backward()
+            # update parameters
+            optim.step()
+            # print relevant info to progress bar
+            loop.set_description(f'Epoch {epoch}')
+            loop.set_postfix(loss=loss.item())
+        total_loss = round(total_loss / len(loop), 3)
+        print(f'Average loss {total_loss}')
+
+
+    if save:
+        now = datetime.now()
+        model.save_pretrained(save_path + str(now) + 'local_prot_bert_MLM_model')
+        return str(now) + 'local_prot_bert_MLM_model'
+    else:
+        return 'Done'
