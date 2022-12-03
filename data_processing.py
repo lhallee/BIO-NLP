@@ -23,6 +23,7 @@ def pairs_to_dataset(path, length, number, header, shuf=True):
 
     df.drop(df.index[drops], inplace=True)
     df['Label'] = df['Label'].astype('int')
+    df = df.sample(frac=1).reset_index(drop=True) #shuffle dataframe in place
     if shuf:
         len_df = len(df['A'])  # Keep original length
         df = pd.concat([df] * 2, ignore_index=True)  # Double size
@@ -66,8 +67,8 @@ def pairs_to_dataset(path, length, number, header, shuf=True):
         df['Combined'].iloc[i] = '[CLS] ' + SeqA + ' [SEP] ' + SeqB + ' [SEP]'
 
 
-    #df = df.sample(frac=1).reset_index(drop=True) #shuffle dataframe in place
+
     df.to_csv(str(length) + 'labels_combined' + str(number) + '.csv', columns=header)
 
 header = ['Label', 'Combined']
-pairs_to_dataset('PPI_seqs_trimmed.csv', 512, 20000000, header)
+pairs_to_dataset('PPI_seqs_trimmed.csv', 384, 20000000, header, False)
