@@ -152,7 +152,7 @@ def make_tokens(tokenizer_path, data_path):
     torch.save(inputs, 'nlp_train_data_100000.pt')
 
 
-def nsp_eval(model_path, tokenizer_path, data_path):
+def nsp_eval(model_path, tokenizer_path, data_path, batch_size):
     df = pd.read_csv(data_path).astype('string')
     df['Label'] = df['Label'].astype('int')
     SeqsA = list(df['SeqA'])
@@ -166,7 +166,7 @@ def nsp_eval(model_path, tokenizer_path, data_path):
     inputs['labels'] = torch.LongTensor([labels]).T
     dataset = BertDataset(inputs)
 
-    loader = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=True)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     # and move our model over to the selected device
