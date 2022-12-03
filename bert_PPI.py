@@ -262,7 +262,7 @@ def bert_MLM_token_train(model_path, tokenizer_path, data_path, save_path, epoch
         return 'Done'
 
 def bert_MLM_train(model_path, data_path, save_path, epochs, batch_size, lr=1e-3, save=True):
-    model = BertForMaskedLM.from_pretrained(model_path, do_lower_case=False)
+    model = BertForMaskedLM.from_pretrained(model_path)
     inputs = torch.load(data_path)
     inputs['labels'] = inputs.input_ids.detach().clone()
     # create random array of floats with equal dimensions to input_ids tensor
