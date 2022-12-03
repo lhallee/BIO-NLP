@@ -166,7 +166,7 @@ def nsp_eval(model_path, tokenizer_path, data_path):
     inputs['labels'] = torch.LongTensor([labels]).T
     dataset = BertDataset(inputs)
 
-    loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=1)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     # and move our model over to the selected device
@@ -187,9 +187,6 @@ def nsp_eval(model_path, tokenizer_path, data_path):
             pred = torch.argmax(outputs.logits)
             if pred.float() == labels.float():
                 correct += 1
-            print(pred.float())
-            print(labels.float())
-            print(correct)
 
     acc = 100 * correct / len(df['Label'])
     print(acc)
