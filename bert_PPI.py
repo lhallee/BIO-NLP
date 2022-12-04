@@ -1,7 +1,11 @@
 import pandas as pd
 import torch
+import random
 from datetime import datetime
-from transformers import BertTokenizer, BertForNextSentencePrediction, BertForMaskedLM, BertConfig
+from mlm.scorers import MLMScorer
+from mlm.models import get_pretrained
+import mxnet as mx
+from transformers import BertTokenizer, BertForNextSentencePrediction, BertForMaskedLM, pipeline
 from tqdm import tqdm
 
 
@@ -75,7 +79,6 @@ def bert_NSP_token_train(model_path, tokenizer_path, data_path, save_path, epoch
     if save:
         now = datetime.now()
         model.save_pretrained(save_path + str(now) + 'local_prot_bert_NSP_model')
-        #prot_tokenizer.save_pretrained(str(now) + 'local_prot_bert_NSP_tokenizer')
         return str(now) + 'local_prot_bert_NSP_model'
     else:
         return 'Done'
@@ -139,7 +142,7 @@ def bert_NSP_train(model_path, data_path, save_path, epochs, batch_size, lr=1e-3
         return 'Done'
 
 
-def make_tokens(tokenizer_path, data_path):
+def make_tokens(tokenizer_path, data_path, save_path):
     df = pd.read_csv(data_path).astype('string')[:50000]
     df['Label'] = df['Label'].astype('int')
     SeqsA = list(df['SeqA'])
@@ -149,7 +152,7 @@ def make_tokens(tokenizer_path, data_path):
     print('Calculating Tokens')
     inputs = prot_tokenizer(SeqsA, SeqsB, return_tensors='pt', padding='max_length', max_length=2003)
     inputs['labels'] = torch.LongTensor([labels]).T
-    torch.save(inputs, 'nlp_train_data_100000.pt')
+    torch.save(inputs, save_path)
 
 
 def nsp_eval(model_path, tokenizer_path, data_path):
@@ -321,3 +324,29 @@ def bert_MLM_train(model_path, data_path, save_path, epochs, batch_size, lr=1e-3
         if save:
             model.save_pretrained(save_path + str(now) + 'local_prot_bert_MLM_model')
     return 'Done'
+
+
+def bert_MLM_eval(model_path, tokenizer_path, data_path, num, cpu=False):
+    amino_list = 'LAGVESIKRDTPNQFYMHCWXUBZO'
+    ctxs = [mx.cpu()] if cpu else [mx.gpu()]
+    model = BertForMaskedLM.from_pretrained(model_path)
+    vocab, tokenizer = get_pretrained(ctxs, tokenizer_path)[1:2]
+    scorer = MLMScorer(model, vocab, tokenizer, ctxs)
+    df = pd.read_csv(data_path).astype('string')[:num]
+    Seqs = list(df['Combined'])
+    print(Seqs)
+    score = scorer.score_sentences(Seqs)
+    print(score)
+    unmasker = pipeline('fill-mask', model=model, tokenizer=tokenizer)
+    for i in range(len(Seqs)):
+        seq = Seqs[i]
+        masks = 0
+        while masks <= int(len(seq) * 0.15):
+            m = random.randint(1, len(seq))
+            if seq(m) in amino_list:
+                seq = seq[:m] + '[MASK]' + seq[m+1:]
+                masks += 1
+        unmasker(seq)
+
+
+

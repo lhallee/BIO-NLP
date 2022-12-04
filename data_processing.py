@@ -71,4 +71,4 @@ def pairs_to_dataset(path, length, number, header, shuf=True):
     df.to_csv(str(length) + 'labels_combined' + str(number) + '.csv', columns=header)
 
 header = ['Label', 'Combined']
-pairs_to_dataset('PPI_seqs_trimmed.csv', 384, 20000000, header, False)
+pairs_to_dataset('PPI_seqs_trimmed.csv', 256, 20000000, header, False)
