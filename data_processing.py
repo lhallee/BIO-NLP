@@ -64,7 +64,7 @@ def pairs_to_dataset(path, length, number, header, shuf=True):
         SeqB = ' '.join(list(SeqB))
         df['SeqA'].iloc[i] = SeqA
         df['SeqB'].iloc[i] = SeqB
-        df['Combined'].iloc[i] = '[CLS] ' + SeqA + ' [SEP] ' + SeqB + ' [SEP]'
+        df['Combined'].iloc[i] = SeqA + ' [SEP] ' + SeqB
 
 
 

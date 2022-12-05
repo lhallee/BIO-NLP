@@ -330,15 +330,18 @@ def bert_MLM_eval(model_path, tokenizer_path, data_path, num):
     df = pd.read_csv(data_path).astype('string')[:num]
     Seqs = list(df['Combined'])
     unmasker = pipeline('fill-mask', model=model, tokenizer=prot_tokenizer)
-    for i in range(len(Seqs)):
+    correct = 0
+    for i in range(num):
         seq = Seqs[i]
         masks = 0
-        while masks <= int(len(seq) * 0.15):
-            m = random.randint(1, len(seq))
-            if seq[m] in amino_list:
+        while masks < 1:
+            m = random.randint(6, len(seq)-6)
+            gt = seq[m]
+            if seq[m] in amino_list and seq[m-1] == seq[m+1]:
                 seq = seq[:m] + '[MASK]' + seq[m+1:]
+                pred = unmasker(seq)
+                if gt == list(pred[0].values())[2]:
+                    correct += 1
                 masks += 1
-        unmasker(seq)
-
-
-
+    acc = 100 * correct / num
+    return acc
