@@ -5,8 +5,8 @@ import re
 import random
 from tqdm import tqdm
 
-def pairs_to_dataset(path, length, number, header, shuf=True):
-    df = pd.read_csv(path, low_memory=False).astype('string') # Load data
+def pairs_to_dataset(data_path, length, number, header, save_path, shuf=True):
+    df = pd.read_csv(data_path, low_memory=False).astype('string') # Load data
     if number < len(df['A']):
         df = df[:number]
     # Process by sequence size
@@ -68,7 +68,7 @@ def pairs_to_dataset(path, length, number, header, shuf=True):
 
 
 
-    df.to_csv(str(length) + 'labels_combined' + str(number) + '.csv', columns=header)
+    df.to_csv(str(length) + save_path + str(number) + '.csv', columns=header)
 
-header = ['Label', 'Combined']
-pairs_to_dataset('PPI_seqs_trimmed.csv', 256, 20000000, header, False)
+header = ['A', 'B', 'SeqA', 'SeqB', 'Combined', 'Label']
+pairs_to_dataset('PPI_seqs_trimmed.csv', 256, 20000000, header, 'names_seqs_combined_labels', True)
