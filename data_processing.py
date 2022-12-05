@@ -23,7 +23,6 @@ def pairs_to_dataset(data_path, length, number, header, save_path, shuf=True):
 
     df.drop(df.index[drops], inplace=True)
     df['Label'] = df['Label'].astype('int')
-    df = df.sample(frac=1).reset_index(drop=True) #shuffle dataframe in place
     if shuf:
         len_df = len(df['A'])  # Keep original length
         df = pd.concat([df] * 2, ignore_index=True)  # Double size
@@ -52,8 +51,10 @@ def pairs_to_dataset(data_path, length, number, header, save_path, shuf=True):
                     df['B'].iloc[i] = 'B_' + idB + '-' + str(i)
             except:
                 drops_shuf.append(i)
-
         df.drop(df.index[drops_shuf], inplace=True)
+        df = df.sample(frac=1).reset_index(drop=True)  # shuffle dataframe in place
+    else:
+        df = df.sample(frac=1).reset_index(drop=True)  # shuffle dataframe in place
 
     for i in tqdm(range(len(df['A'])), desc='Combine'):  # remove special aminos and add spaces
         SeqA = str(df['SeqA'].iloc[i])
@@ -65,10 +66,8 @@ def pairs_to_dataset(data_path, length, number, header, save_path, shuf=True):
         df['SeqA'].iloc[i] = SeqA
         df['SeqB'].iloc[i] = SeqB
         df['Combined'].iloc[i] = SeqA + ' [SEP] ' + SeqB
-
-
-
     df.to_csv(str(length) + save_path + str(number) + '.csv', columns=header)
+    return 'Done'
 
 header = ['A', 'B', 'SeqA', 'SeqB', 'Combined', 'Label']
 pairs_to_dataset('PPI_seqs_trimmed.csv', 256, 20000000, header, 'names_seqs_combined_labels', True)

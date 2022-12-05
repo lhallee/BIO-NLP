@@ -16,6 +16,7 @@ class BertDataset(torch.utils.data.Dataset):
 
 def nsp_eval(model_path, tokenizer_path, data_path, max_seq_len, num):
     df = pd.read_csv(data_path).astype('string')[:num]
+    df.drop(df.index[drops_shuf], inplace=True)
     df['Label'] = df['Label'].astype('int')
     SeqsA = list(df['SeqA'])
     SeqsB = list(df['SeqB'])
@@ -55,6 +56,7 @@ def bert_MLM_eval(model_path, tokenizer_path, data_path, num):
     model = BertForMaskedLM.from_pretrained(model_path)
     prot_tokenizer = BertTokenizer.from_pretrained(tokenizer_path, do_lower_case=False)
     df = pd.read_csv(data_path).astype('string')[:num]
+    df.drop(df.index[drops_shuf], inplace=True)
     Seqs = list(df['Combined'])
     unmasker = pipeline('fill-mask', model=model, tokenizer=prot_tokenizer)
     correct = 0

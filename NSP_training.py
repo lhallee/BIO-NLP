@@ -28,7 +28,8 @@ def bert_NSP_token_train(model_path,
     prot_tokenizer = BertTokenizer.from_pretrained(tokenizer_path, do_lower_case=False)
     model = BertForNextSentencePrediction.from_pretrained(model_path)
 
-    inputs = prot_tokenizer(SeqsA, SeqsB, return_tensors='pt', max_length=2 * max_seq_len + 3, truncation=True, padding='max_length')
+    inputs = prot_tokenizer(SeqsA, SeqsB, return_tensors='pt', max_length=2 * max_seq_len + 3,
+                            truncation=True, padding='max_length')
     inputs['labels'] = torch.LongTensor([labels]).T
 
     dataset = BertDataset(inputs)
