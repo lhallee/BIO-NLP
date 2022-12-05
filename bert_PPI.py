@@ -335,7 +335,7 @@ def bert_MLM_eval(model_path, tokenizer_path, data_path, num):
         masks = 0
         while masks <= int(len(seq) * 0.15):
             m = random.randint(1, len(seq))
-            if seq(m) in amino_list:
+            if seq[m] in amino_list:
                 seq = seq[:m] + '[MASK]' + seq[m+1:]
                 masks += 1
         unmasker(seq)
