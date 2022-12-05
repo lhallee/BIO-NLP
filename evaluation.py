@@ -3,6 +3,16 @@ import pandas as pd
 from transformers import BertTokenizer, BertForNextSentencePrediction, BertForMaskedLM, pipeline
 from tqdm import tqdm
 
+class BertDataset(torch.utils.data.Dataset):
+    def __init__(self, encodings):
+        self.encodings = encodings
+
+    def __getitem__(self, idx):
+        return {key: val[idx].detach().clone() for key, val in self.encodings.items()}
+
+    def __len__(self):
+        return len(self.encodings.input_ids)
+
 
 def nsp_eval(model_path, tokenizer_path, data_path, max_seq_len, num):
     df = pd.read_csv(data_path).astype('string')[:num]

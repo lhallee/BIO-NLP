@@ -4,6 +4,16 @@ from datetime import datetime
 from transformers import BertTokenizer, BertForNextSentencePrediction
 from tqdm import tqdm
 
+class BertDataset(torch.utils.data.Dataset):
+    def __init__(self, encodings):
+        self.encodings = encodings
+
+    def __getitem__(self, idx):
+        return {key: val[idx].detach().clone() for key, val in self.encodings.items()}
+
+    def __len__(self):
+        return len(self.encodings.input_ids)
+
 def bert_NSP_token_train(model_path,
                          tokenizer_path,
                          data_path,
