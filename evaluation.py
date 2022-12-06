@@ -1,6 +1,6 @@
 import torch
 import pandas as pd
-from transformers import BertTokenizer, BertForNextSentencePrediction, BertForMaskedLM, pipeline
+from transformers import BertTokenizer, BertForNextSentencePrediction, BertForMaskedLM, pipeline, BertModel
 from tqdm import tqdm
 
 class BertDataset(torch.utils.data.Dataset):
@@ -15,9 +15,10 @@ class BertDataset(torch.utils.data.Dataset):
 
 
 def nsp_eval(model_path, tokenizer_path, data_path, max_seq_len, num):
-    df = pd.read_csv(data_path).astype('string')[:num]
-    df = df.sample(frac=1).reset_index(drop=True)  # shuffle dataframe in place
+    df = pd.read_csv(data_path).astype('string')
     df['Label'] = df['Label'].astype('int')
+    df = df.sample(frac=1).reset_index(drop=True)
+    df = df[:num]
     SeqsA = list(df['SeqA'])
     SeqsB = list(df['SeqB'])
     labels = list(df['Label'])
@@ -32,8 +33,8 @@ def nsp_eval(model_path, tokenizer_path, data_path, max_seq_len, num):
     correct = 0
     loop = tqdm(loader, leave=True)
     model.to(device)
+    model.eval()
     with torch.no_grad():
-        model.eval()
         for batch in loop:
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
@@ -43,7 +44,7 @@ def nsp_eval(model_path, tokenizer_path, data_path, max_seq_len, num):
                             attention_mask=attention_mask,
                             token_type_ids=token_type_ids)
             pred = torch.argmax(outputs.logits)
-            if pred.float() == labels.float():
+            if pred.item() == labels.item():
                 correct += 1
 
     acc = 100 * correct / len(df['Label'])
@@ -55,8 +56,9 @@ def bert_MLM_eval(model_path, tokenizer_path, data_path, num):
     amino_list = 'LAGVESIKRDTPNQFYMHCWXUBZO'
     model = BertForMaskedLM.from_pretrained(model_path)
     prot_tokenizer = BertTokenizer.from_pretrained(tokenizer_path, do_lower_case=False)
-    df = pd.read_csv(data_path).astype('string')[:num]
+    df = pd.read_csv(data_path).astype('string')
     df = df.sample(frac=1).reset_index(drop=True)  # shuffle dataframe in place
+    df = df[:num]
     Seqs = list(df['Combined'])
     unmasker = pipeline('fill-mask', model=model, tokenizer=prot_tokenizer)
     correct = 0
